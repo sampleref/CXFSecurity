@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+	elementFormDefault="qualified" attributeFormDefault="qualified"
+	targetNamespace="http://com/securityintegration/checkservice/"
+	xmlns:sic="http://com/securityintegration/checkservice/">
+	
+	<xs:include schemaLocation="soapdatatype.xsd"/>
+		
+	<xs:complexType name="EmployeeByIdRequest">
+		<xs:annotation>
+			<xs:documentation>Employee Id in request</xs:documentation>
+		</xs:annotation>
+		<xs:sequence maxOccurs="1" minOccurs="1">
+			<xs:element name="employeeId" type="xs:unsignedInt"/>
+			<xs:element name="otherinfo" type="xs:base64Binary" xmime:expectedContentTypes="*/*"/> 
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="EmployeeByIdResponse">
+		<xs:annotation>
+			<xs:documentation>Employee Id in response</xs:documentation>
+		</xs:annotation>
+		<xs:sequence maxOccurs="1" minOccurs="1">
+			<xs:element name="employee" type="sic:Employee"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="ServiceException">
+		<xs:annotation>
+			<xs:documentation>Exception response</xs:documentation>
+		</xs:annotation>
+		<xs:sequence maxOccurs="1" minOccurs="1">
+			<xs:element name="faultcode" type="xs:string"/>
+			<xs:element name="faultmessage" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:element name="employeeById_Request" type="sic:EmployeeByIdRequest"/>
+	<xs:element name="employeeById_Response" type="sic:EmployeeByIdResponse"/>
+	
+	<xs:element name="serviceException_Response" type="sic:ServiceException"/>
+</xs:schema>

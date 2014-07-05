@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+	
+	<appender name="consoleAppender" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="&lt;&lt;mywebservice|%d{ISO8601}||%t|%p|%C:%L||||&gt;&gt; %m %n" />
+		</layout>
+	</appender>
+	
+	<appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="datePattern" value="'.'yyyy-MM-dd" />
+		<param name="file" value="${catalina.base}/logs/CXFSecurity_StsService.log" />
+<!-- 		<param name="file" value="C:/Users/viscx73/Documents/logs/mywebservice.log" /> -->
+		<param name="Append" value="true" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="&lt;&lt;${component}|${location}|%d{ISO8601}||%t|%p|%C:%L||||&gt;&gt; %m %n" />
+		</layout>
+	</appender>
+
+	<appender name="SYSOUT" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{ISO8601} %-5p [%-4.4t] (%-30c{1}:%4L) - %m%n" />
+		</layout>
+	</appender>
+	
+	<logger name="org.springframework">
+		<level value="debug" />
+	</logger>
+	
+	<logger name="com.security.integration">
+		<level value="debug" />
+	</logger>
+	
+	<logger name="org.apache">
+		<level value="debug" />
+	</logger>
+
+	<root>
+		<priority value="debug" />
+		<appender-ref ref="FILE" />
+		<appender-ref ref="SYSOUT" />
+	</root>	
+
+</log4j:configuration>

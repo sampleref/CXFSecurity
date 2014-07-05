@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jxb:bindings version="1.0" 
+	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" 
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb" 
+	xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <jxb:bindings schemaLocation="checkservice.xsd" node="/xs:schema">
+
+        <!-- Customize the package name that is generated for each schema -->
+        <jxb:schemaBindings>
+            <jxb:package name="com.securityintegration.checkservice.webservice.dom.jaxb"/>
+            <jxb:nameXmlTransform>
+				<jxb:typeName prefix="T"/>
+				<jxb:anonymousTypeName prefix="T"/>
+            </jxb:nameXmlTransform>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+</jxb:bindings>

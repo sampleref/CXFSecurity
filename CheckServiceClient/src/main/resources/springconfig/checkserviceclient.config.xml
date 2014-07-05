@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:soap="http://cxf.apache.org/bindings/soap"
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xsi:schemaLocation="
+				http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+				http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+	            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+	            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	            http://cxf.apache.org/bindings/soap http://cxf.apache.org/schemas/configuration/soap.xsd
+	            http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd">
+	            
+	<import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-extension-soap.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+    
+    <!-- Enable JSR-330 annotation-driven dependency injection. Scanning-->
+	<context:component-scan base-package="com" scoped-proxy="no" />
+	<!-- Initialize various annotations -->
+	<context:annotation-config />
+	
+	<!-- READ PROPERTIES FOR PLACE HOLDERS -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:springconfig/config_param.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="keystorePasswordCallback" class="com.security.client.security.CheckServiceClientTestCallbackHandler">
+		<property name="passwords">
+			<map>
+				<entry key="${wss.keystoreAlias}" value="${wss.keyPassword}"/>
+			</map>
+		</property>
+	</bean>
+	
+	<util:properties id="keystoreProperties">
+		<prop key="org.apache.ws.security.crypto.provider">org.apache.ws.security.components.crypto.Merlin</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.type">${wss.keystoreType}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.password">${wss.keystorePassword}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.alias">${wss.keystoreAlias}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.file">${wss.keystorePath}</prop>
+		<!-- Using STS requires no local trust
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.file">${wss.keystorePath}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.password">${wss.keystorePassword}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.type">${wss.keystoreType}</prop>
+		-->
+	</util:properties>
+    
+    <bean id="checkServiceClient" class="com.security.client.impl.CheckServiceTestClient">
+    	<property name="integrationLayerPort" ref="securityIntegrationClient"/>
+    </bean>
+				
+	<jaxws:client serviceClass="com.securityintegration.checkservice.servicelayer.SecurityIntegrationLayerPort" 
+					xmlns:tns="http://com/securityintegration/checkservice/servicelayer"
+					id="securityIntegrationClient"
+					wsdlLocation="classpath:META-INF/api/checkservice.wsdl"
+					endpointName="tns:securityIntegrationLayerServiceSOAP"
+					serviceName="tns:securityIntegrationLayerService"
+					address="http://localhost:8080/CheckService/services/SecurityIntegrationService">
+		
+		<!-- KEYSTORE PROPERTIES CLIENT -->	
+		<jaxws:properties>
+			<entry key="ws-security.sts.client" value-ref="stsServiceClient"/>
+		</jaxws:properties>
+		<jaxws:inInterceptors>
+			<bean class="org.apache.cxf.interceptor.LoggingInInterceptor" />
+		</jaxws:inInterceptors>
+		<jaxws:outInterceptors>
+			<bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" />
+		</jaxws:outInterceptors>
+		
+	</jaxws:client>
+	
+	<bean class="org.apache.cxf.ws.security.trust.STSClient" id="stsServiceClient">
+          <constructor-arg ref="cxf" />
+          <property name="wsdlLocation" value="http://localhost:8080/StsService/services/STS?wsdl" />
+          <property name="serviceName" value="{http://docs.oasis-open.org/ws-sx/ws-trust/200512/}SecurityTokenService" />
+          <property name="endpointName" value="{http://docs.oasis-open.org/ws-sx/ws-trust/200512/}STS_Port" />
+          <property name="properties">
+              <map>
+                  <entry key="ws-security.username" value="alice" />
+                  <entry key="ws-security.callback-handler" value-ref="keystorePasswordCallback" />
+                  <entry key="ws-security.encryption.properties" value-ref="keystoreProperties" />
+                  <entry key="ws-security.encryption.username" value="${wss.stsKeystoreAlias}" />
+              </map>
+          </property>
+      </bean>
+				
+</beans>				

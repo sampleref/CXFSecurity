@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified" attributeFormDefault="qualified"
+	targetNamespace="http://com/securityintegration/checkservice/"
+	xmlns:cab="http://com/securityintegration/checkservice/">
+	
+	<xs:complexType name="Employee">
+		<xs:annotation>
+			<xs:documentation>Employee Data</xs:documentation>
+			<xs:appinfo>checkservice</xs:appinfo>
+		</xs:annotation>
+		<xs:sequence maxOccurs="1" minOccurs="1">
+			<xs:element name="id" type="xs:unsignedInt" maxOccurs="1" minOccurs="0" />
+			<xs:element name="name" type="xs:string" maxOccurs="1" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	
+</xs:schema>

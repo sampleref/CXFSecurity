@@ -1,0 +1,96 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:cxf="http://cxf.apache.org/core" xmlns:jaxws="http://cxf.apache.org/jaxws"
+    xmlns:test="http://apache.org/hello_world_soap_http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
+	http://cxf.apache.org/core
+	http://cxf.apache.org/schemas/core.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://cxf.apache.org/jaxws
+	http://cxf.apache.org/schemas/jaxws.xsd
+	http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+
+    <import resource="classpath:META-INF/cxf/cxf.xml"/>
+
+    <cxf:bus>
+        <cxf:features>
+            <cxf:logging />
+        </cxf:features>
+    </cxf:bus>
+    
+    <!-- Enable JSR-330 annotation-driven dependency injection. Scanning-->
+	<context:component-scan base-package="com" scoped-proxy="no" />
+	<!-- Initialize various annotations -->
+	<context:annotation-config />
+	
+	<!-- READ PROPERTIES FOR PLACE HOLDERS -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:springconfig/config_param.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <bean id="defaultSecurityTokenServiceProviderBean"
+        class="org.apache.cxf.sts.provider.DefaultSecurityTokenServiceProvider">
+        <property name="stsProperties" ref="stsLocalProperties" />
+        <property name="services" ref="staticServicesList" />
+    </bean>
+    
+    <util:list id="staticServicesList">
+	    <ref bean="securedServiceList"/>
+	</util:list>
+
+    <bean id="securedServiceList" class="org.apache.cxf.sts.service.StaticService">
+        <property name="endpoints" ref="wspAllowedEndpoints" />
+    </bean>
+
+    <util:list id="wspAllowedEndpoints">
+        <value>http://localhost:8080/CheckService/services/SecurityIntegrationService.*</value>
+    </util:list>
+
+    <bean id="stsLocalProperties" class="org.apache.cxf.sts.StaticSTSProperties">
+        <property name="signaturePropertiesFile" value="springconfig/config_param.properties" />
+        <property name="signatureUsername" value="${wss.keystoreAlias}" />
+        <property name="callbackHandlerClass" value="sts.PasswordCallbackHandler" />
+        <property name="encryptionPropertiesFile" value="springconfig/config_param.properties" />
+        <property name="issuer" value="CieronSTSIssuer" />
+        <property name="encryptionUsername" value="${wss.serviceKeystoreAlias}"/>
+    </bean>
+    
+    <util:properties id="keystoreProperties">
+		<prop key="org.apache.ws.security.crypto.provider">org.apache.ws.security.components.crypto.Merlin</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.type">${wss.keystoreType}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.password">${wss.keystorePassword}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.alias">${wss.keystoreAlias}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.file">${wss.keystorePath}</prop>
+		<!-- Using STS requires no local trust 
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.file">${wss.keystorePath}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.password">${wss.keystorePassword}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.type">${wss.keystoreType}</prop>
+		-->
+	</util:properties>
+
+    <jaxws:endpoint id="CXFSTS" implementor="#defaultSecurityTokenServiceProviderBean"
+        address="/STS" wsdlLocation="classpath:META-INF/api/StsService.wsdl"
+        xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/"
+        serviceName="ns1:SecurityTokenService" endpointName="ns1:STS_Port">
+        <jaxws:properties>
+            <entry key="ws-security.callback-handler" value="com.security.sts.security.StsPasswordCallbackHandler" />
+            <entry key="ws-security.signature.properties" value-ref="keystoreProperties" />
+            <entry key="ws-security.signature.username" value="${wss.keystoreAlias}" />
+            <!-- Below unused/unneeded if using UT auth between WSC and STS 
+            <entry key="ws-security.encryption.username" value="useReqSigCert" />-->
+            <!-- Uncomment below only if (1) using UT auth *and* (2) Metro clients -->
+            <!-- Needed due to lack of TokenType param (Metro bugs WSIT-1324 and WSIT-1570) -->
+            <!--entry key="ws-security.is-bsp-compliant" value="false"/-->
+        </jaxws:properties>
+    </jaxws:endpoint>
+
+</beans>
+

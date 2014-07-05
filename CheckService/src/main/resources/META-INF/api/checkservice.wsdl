@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:sics="http://com/securityintegration/checkservice/servicelayer"
+	xmlns:sic="http://com/securityintegration/checkservice/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="securityintegrationservice"
+	
+	xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
+	xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
+	xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702"
+	xmlns:wsaw="http://www.w3.org/2005/08/addressing" 
+   	xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex"
+   	
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	xmlns:t="http://docs.oasis-open.org/ws-sx/ws-trust/200512" 
+	targetNamespace="http://com/securityintegration/checkservice/servicelayer">
+	
+	<wsdl:documentation>
+		<version>1.0</version>
+	</wsdl:documentation>
+	
+	<wsdl:types>
+		<xsd:schema>
+			<xsd:import namespace="http://com/securityintegration/checkservice/" 
+				schemaLocation="checkservice.xsd"/>
+		</xsd:schema>
+	</wsdl:types>
+	
+	<wsdl:message name="serviceException">
+		<wsdl:part name="fault" element="sic:serviceException_Response"/>
+	</wsdl:message>
+	
+	<wsdl:message name="employeeByIdRequest">
+		<wsdl:part element="sic:employeeById_Request" name="parameters" />
+	</wsdl:message>
+	<wsdl:message name="employeeByIdResponse">
+		<wsdl:part element="sic:employeeById_Response" name="return"/>
+	</wsdl:message>
+	
+	<wsdl:portType name="securityIntegrationLayerPort">
+		<wsdl:operation name="getEmployeeById">
+			<wsdl:documentation>getEmployeeById</wsdl:documentation>
+			<wsdl:input message="sics:employeeByIdRequest" />
+			<wsdl:output message="sics:employeeByIdResponse" />
+			<wsdl:fault name="serviceException" message="sics:serviceException"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	
+	<wsdl:binding name="securityIntegrationLayerSOAP" type="sics:securityIntegrationLayerPort">
+		<!-- BINDING SECURITY POLICY -->
+		<wsp:PolicyReference URI="#SecurityIntegrationBindingPolicy" />
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+		<wsdl:operation name="getEmployeeById">
+			<soap:operation soapAction="http://com/securityintegration/checkservice/servicelayer/getEmployeeById"/>
+			<wsdl:input>
+				<!-- INPUT POLICY -->
+				<wsp:PolicyReference URI="#SecurityIntegrationInputBindingPolicy"/>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<!-- OUTPUT POLICY -->
+				<wsp:PolicyReference URI="#SecurityIntegrationOutputBindingPolicy"/>
+				<soap:body use="literal"/>
+			</wsdl:output>
+			<wsdl:fault name="serviceException">
+				<soap:fault name="serviceException" use="literal"/>
+			</wsdl:fault>
+		</wsdl:operation>
+	</wsdl:binding>
+	
+	<wsdl:service name="securityIntegrationLayerService">
+		<wsdl:port name="securityIntegrationLayerServiceSOAP" binding="sics:securityIntegrationLayerSOAP">
+			<soap:address location="http://localhost:8080/checkservice/securityintegrationservice"/>
+		</wsdl:port>
+	</wsdl:service>
+	
+	<!-- Security Policy -->
+	<wsp:Policy wsu:Id="SecurityIntegrationBindingPolicy">
+		<wsp:ExactlyOne>
+         <wsp:All>
+            <wsam:Addressing wsp:Optional="false">
+               <wsp:Policy/>
+            </wsam:Addressing>
+            <sp:SymmetricBinding>
+               <wsp:Policy>
+                  <sp:ProtectionToken>
+                     <wsp:Policy>
+                        <sp:IssuedToken sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+                           <sp:RequestSecurityTokenTemplate>
+                              <t:TokenType>http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1</t:TokenType>
+                              <t:KeyType>http://docs.oasis-open.org/ws-sx/ws-trust/200512/SymmetricKey</t:KeyType>
+                              <t:KeySize>256</t:KeySize>
+                           </sp:RequestSecurityTokenTemplate>
+                           <wsp:Policy>
+                              <sp:RequireInternalReference/>
+                           </wsp:Policy>
+                           <sp:Issuer>
+                              <wsaw:Address>http://localhost:8080/StsService/services/STS</wsaw:Address>
+                              <wsaw:Metadata>
+                                 <wsx:Metadata>
+                                    <wsx:MetadataSection>
+                                       <wsx:MetadataReference>
+                                          <wsaw:Address>http://localhost:8080/StsService/services/STS/mex</wsaw:Address>
+                                       </wsx:MetadataReference>
+                                    </wsx:MetadataSection>
+                                 </wsx:Metadata>
+                              </wsaw:Metadata>
+                           </sp:Issuer>
+                        </sp:IssuedToken>
+                     </wsp:Policy>
+                  </sp:ProtectionToken>
+                  <sp:Layout>
+                     <wsp:Policy>
+                        <sp:Lax/>
+                     </wsp:Policy>
+                  </sp:Layout>
+                  <sp:IncludeTimestamp/>
+                  <sp:OnlySignEntireHeadersAndBody/>
+                  <sp:AlgorithmSuite>
+                     <wsp:Policy>
+                        <sp:Basic256/>
+                     </wsp:Policy>
+                  </sp:AlgorithmSuite>
+               </wsp:Policy>
+            </sp:SymmetricBinding>
+            <sp:Wss11>
+               <wsp:Policy>
+                  <sp:MustSupportRefIssuerSerial/>
+                  <sp:MustSupportRefThumbprint/>
+                  <sp:MustSupportRefEncryptedKey/>
+               </wsp:Policy>
+            </sp:Wss11>
+            <sp:Trust13>
+               <wsp:Policy>
+                  <sp:MustSupportIssuedTokens/>
+                  <sp:RequireClientEntropy/>
+                  <sp:RequireServerEntropy/>
+               </wsp:Policy>
+            </sp:Trust13>
+         </wsp:All>
+      </wsp:ExactlyOne>
+	</wsp:Policy>
+	<wsp:Policy wsu:Id="SecurityIntegrationInputBindingPolicy">
+		<wsp:ExactlyOne>
+         <wsp:All>
+            <sp:EncryptedParts>
+               <sp:Body/>
+            </sp:EncryptedParts>
+            <sp:SignedParts>
+               <sp:Body/>
+               <sp:Header Name="To" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="From" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="FaultTo" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="ReplyTo" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="MessageID" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="RelatesTo" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="Action" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="AckRequested" Namespace="http://docs.oasis-open.org/ws-rx/wsrm/200702"/>
+               <sp:Header Name="SequenceAcknowledgement" Namespace="http://docs.oasis-open.org/ws-rx/wsrm/200702"/>
+               <sp:Header Name="Sequence" Namespace="http://docs.oasis-open.org/ws-rx/wsrm/200702"/>
+               <sp:Header Name="CreateSequence" Namespace="http://docs.oasis-open.org/ws-rx/wsrm/200702"/>
+               <!--CXF uses by default for the docs/200702 ones: Namespace="http://schemas.xmlsoap.org/ws/2005/02/rm"/-->
+            </sp:SignedParts>
+         </wsp:All>
+      </wsp:ExactlyOne>
+	</wsp:Policy>
+	<wsp:Policy wsu:Id="SecurityIntegrationOutputBindingPolicy">
+		<wsp:ExactlyOne>
+         <wsp:All>
+            <sp:EncryptedParts>
+               <sp:Body/>
+            </sp:EncryptedParts>
+            <sp:SignedParts>
+               <sp:Body/>
+               <sp:Header Name="To" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="From" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="FaultTo" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="ReplyTo" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="MessageID" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="RelatesTo" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="Action" Namespace="http://www.w3.org/2005/08/addressing"/>
+               <sp:Header Name="AckRequested" Namespace="http://docs.oasis-open.org/ws-rx/wsrm/200702"/>
+               <sp:Header Name="SequenceAcknowledgement" Namespace="http://docs.oasis-open.org/ws-rx/wsrm/200702"/>
+               <sp:Header Name="Sequence" Namespace="http://docs.oasis-open.org/ws-rx/wsrm/200702"/>
+               <sp:Header Name="CreateSequence" Namespace="http://docs.oasis-open.org/ws-rx/wsrm/200702"/>
+            </sp:SignedParts>
+         </wsp:All>
+      </wsp:ExactlyOne>
+	</wsp:Policy>
+	
+</wsdl:definitions>

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:soap="http://cxf.apache.org/bindings/soap"
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:cxf="http://camel.apache.org/schema/cxf"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="
+				http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+				http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+	            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+	            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	            http://cxf.apache.org/bindings/soap http://cxf.apache.org/schemas/configuration/soap.xsd
+	            http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+	            http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd
+            	http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+	            
+	<import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-extension-soap.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+    
+    <!-- Enable JSR-330 annotation-driven dependency injection. Scanning-->
+	<context:component-scan base-package="com" scoped-proxy="no" />
+	<!-- Initialize various annotations -->
+	<context:annotation-config />
+	
+	<!-- READ PROPERTIES FOR PLACE HOLDERS -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:springconfig/config_param.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="keystorePasswordCallback" class="com.security.service.security.CheckServiceKeystorePasswordCallback">
+		<property name="passwords">
+			<map>
+				<entry key="${wss.keystoreAlias}" value="${wss.keyPassword}"/>
+			</map>
+		</property>
+	</bean>
+
+	<util:properties id="keystoreProperties">
+		<prop key="org.apache.ws.security.crypto.provider">org.apache.ws.security.components.crypto.Merlin</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.type">${wss.keystoreType}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.password">${wss.keystorePassword}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.keystore.alias">${wss.keystoreAlias}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.file">${wss.keystorePath}</prop>
+		<!-- Using STS requires no local trust 
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.file">${wss.keystorePath}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.password">${wss.keystorePassword}</prop>
+		<prop key="org.apache.ws.security.crypto.merlin.truststore.type">${wss.keystoreType}</prop>
+		-->
+	</util:properties>
+    
+    <bean id="checkService" class="com.security.service.impl.CheckServiceIntegrationImpl"/>
+	<!-- JAXWS ENDPOINT -->
+	<jaxws:endpoint implementor="#checkService"
+		xmlns:tns="http://com/securityintegration/checkservice/servicelayer"
+		wsdlLocation="classpath:META-INF/api/checkservice.wsdl"
+		endpointName="tns:securityIntegrationLayerServiceSOAP"
+		serviceName="tns:securityIntegrationLayerService"
+		address="/SecurityIntegrationService">
+		<jaxws:binding>
+			<soap:soapBinding style="document" use="literal" version="1.1" />
+		</jaxws:binding>
+		
+		<jaxws:properties>
+			<entry key="ws-security.callback-handler" value-ref="keystorePasswordCallback"/>
+			<entry key="ws-security.signature.properties" value-ref="keystoreProperties"/>
+			<!-- No encrypion so commented below segment 
+			<entry key="ws-security.encryption.properties" value-ref="keystoreProperties"/>
+			<entry key="ws-security.encryption.username" value="useReqSigCert"/>
+			-->
+			<entry key="schema-validation-enabled" value="true" />
+		</jaxws:properties>
+		<jaxws:inInterceptors>
+			<bean class="org.apache.cxf.interceptor.LoggingInInterceptor"/>
+		</jaxws:inInterceptors>
+		<jaxws:outInterceptors> 
+			<bean class="org.apache.cxf.interceptor.LoggingOutInterceptor"/>
+		</jaxws:outInterceptors>
+	</jaxws:endpoint> 
+	
+	<!-- CAMEL ENDPOINT 
+	<cxf:cxfEndpoint id="camelCheckService"
+					serviceClass="#checkService"
+					xmlns:tns="http://com/securityintegration/checkservice/servicelayer"
+					endpointName="tns:securityIntegrationLayerServiceSOAP"
+					serviceName="tns:securityIntegrationLayerService"
+					address="/SecurityIntegrationService"
+					wsdlURL="classpath:META-INF/api/checkservice.wsdl">
+					
+		<cxf:properties>
+			<entry key="ws-security.callback-handler" value-ref="keystorePasswordCallback"/>
+			<entry key="ws-security.encryption.properties" value-ref="keystoreProperties"/>
+			<entry key="ws-security.signature.properties" value-ref="keystoreProperties"/>
+			<entry key="ws-security.encryption.username" value="useReqSigCert"/>
+			<entry key="schema-validation-enabled" value="true" />
+			
+			<entry key="dataFormat" value="PAYLOAD"/>
+			<entry key="mtom-enabled" value="true"/>
+		</cxf:properties>
+		<cxf:inInterceptors>
+			<bean class="org.apache.cxf.interceptor.LoggingInInterceptor"/>
+		</cxf:inInterceptors>
+		<cxf:outInterceptors> 
+			<bean class="org.apache.cxf.interceptor.LoggingOutInterceptor"/>
+		</cxf:outInterceptors>
+	</cxf:cxfEndpoint> 
+	
+	<bean id="securityIntegrationCamelService" class="com.security.integration.serviceimpl.SecurityIntegrationCamelServiceImpl"/>
+     
+	<camel:camelContext>
+		<camel:dataFormats>
+			<camel:jaxb id="secureIntegrationPojo"
+			 	prettyPrint="true" 
+			 	contextPath="com.securityintegration.checkservice.webservice.dom.jaxb"/>
+		</camel:dataFormats>
+		
+		<camel:route>
+			<camel:from uri="cxf:bean:camelCheckService"/>
+			<camel:unmarshal ref="secureIntegrationPojo"/>
+			<camel:process ref="securityIntegrationCamelService"/>
+			<camel:marshal ref="secureIntegrationPojo">
+				<camel:jaxb contextPath="com.securityintegration.checkservice.webservice.dom.jaxb"
+					prettyPrint="false"
+					fragment="true"
+					partClass="com.securityintegration.checkservice.webservice.dom.jaxb.TEmployeeByIdResponse"
+					partNamespace="{http://com/securityintegration/checkservice/}employeeById_Response"/>
+			</camel:marshal>
+		</camel:route>
+	</camel:camelContext>-->
+	
+</beans>				
