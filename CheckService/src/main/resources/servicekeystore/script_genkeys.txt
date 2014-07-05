@@ -1,69 +1,87 @@
 #!/bin/bash
 
+#Create variables
+
+serverkeyalias="serverkeyalias"
+serverkeypassword="serverkeypassword"
+serverstorepassword="serverstorepassword"
+serverkeystorename="serverkeystorename"
+ 
+clientkeyalias="clientkeyalias"
+clientkeypassword="clientkeypassword"
+clientstorepassword="clientstorepassword"
+clientkeystorename="clientkeystorename"
+
+stskeyalias="stskeyalias"
+stskeypassword="stskeypassword"
+stsstorepassword="stsstorepassword"
+stskeystorename="stskeystorename"
+
 # Create Service Key Store
 rm *.p12 *.pem *.jks *.cer
 
-openssl req -x509 -days 730 -newkey rsa:1024 -keyout servicekey.pem -out servicecert.pem -passout pass:sspass # See Note 1
+openssl req -x509 -days 730 -newkey rsa:1024 -keyout servicekey.pem -out servicecert.pem -passout pass:$serverstorepassword # See Note 1
 
-openssl pkcs12 -export -inkey servicekey.pem -in servicecert.pem -out service.p12 -name serverkeyalias -passin pass:sspass -passout pass:serverkeypassword # See Note 2
+openssl pkcs12 -export -inkey servicekey.pem -in servicecert.pem -out service.p12 -name $serverkeyalias -passin pass:$serverstorepassword -passout pass:$serverkeypassword # See Note 2
 
-keytool -importkeystore -destkeystore servicestore.jks -deststorepass serverstorepassword -deststoretype jks -srckeystore service.p12 -srcstorepass serverkeypassword -srcstoretype pkcs12 # See Note 3
+keytool -importkeystore -destkeystore $serverkeystorename.jks -deststorepass $serverstorepassword -deststoretype jks -srckeystore service.p12 -srcstorepass $serverkeypassword -srcstoretype pkcs12 # See Note 3
 
-keytool -list -keystore servicestore.jks -storepass serverstorepassword -v # See Note 4
+keytool -list -keystore $serverkeystorename.jks -storepass $serverstorepassword -v # See Note 4
 
 rm *.pem *.p12
 
 # Create Client Key Store
 
-openssl req -x509 -days 730 -newkey rsa:1024 -keyout clientkey.pem -out clientcert.pem -passout pass:cspass
+openssl req -x509 -days 730 -newkey rsa:1024 -keyout clientkey.pem -out clientcert.pem -passout pass:$clientstorepassword
 
-openssl pkcs12 -export -inkey clientkey.pem -in clientcert.pem -out client.p12 -name myclientkey -passin pass:cspass -passout pass:ckpass
+openssl pkcs12 -export -inkey clientkey.pem -in clientcert.pem -out client.p12 -name $clientkeyalias -passin pass:$clientstorepassword -passout pass:$clientkeypassword
 
-keytool -importkeystore -destkeystore clientstore.jks -deststorepass cspass -deststoretype jks -srckeystore client.p12 -srcstorepass ckpass -srcstoretype pkcs12
+keytool -importkeystore -destkeystore $clientkeystorename.jks -deststorepass $clientstorepassword -deststoretype jks -srckeystore client.p12 -srcstorepass $clientkeypassword -srcstoretype pkcs12
 
-keytool -list -keystore clientstore.jks -storepass cspass -v
+keytool -list -keystore $clientkeystorename.jks -storepass $clientstorepassword -v
 
 rm *.pem *.p12
 
 # Copy import Service - Client into each other - used in case of non STS - for now commented
 
-#keytool -exportcert -alias serverkeyalias -storepass serverstorepassword -keystore servicestore.jks -file service.cer
+#keytool -exportcert -alias $serverkeyalias -storepass $serverstorepassword -keystore $serverkeystorename.jks -file service.cer
 
-#keytool -exportcert -alias myclientkey -storepass cspass -keystore clientstore.jks -file client.cer
+#keytool -exportcert -alias $clientkeyalias -storepass $clientstorepassword -keystore $clientkeystorename.jks -file client.cer
 
-#keytool -import -noprompt -trustcacerts -alias myclientkey -file client.cer -keystore servicestore.jks -storepass sspass
+#keytool -import -noprompt -trustcacerts -alias $clientkeyalias -file client.cer -keystore $serverkeystorename.jks -storepass $serverstorepassword
 
-#keytool -import -noprompt -trustcacerts -alias serverkeyalias -file service.cer -keystore clientstore.jks -storepass cspass
+#keytool -import -noprompt -trustcacerts -alias $serverkeyalias -file service.cer -keystore $clientkeystorename.jks -storepass $clientstorepassword
 
 #rm *.cer 
 
 # Generate STS keystore
-openssl req -x509 -days 730 -newkey rsa:1024 -keyout stskey.pem -out stscert.pem -passout pass:stsspass
+openssl req -x509 -days 730 -newkey rsa:1024 -keyout stskey.pem -out stscert.pem -passout pass:$stsstorepassword
 
-openssl pkcs12 -export -inkey stskey.pem -in stscert.pem -out sts.p12 -name mystskey -passin pass:stsspass -passout pass:stskpass
+openssl pkcs12 -export -inkey stskey.pem -in stscert.pem -out sts.p12 -name $stskeyalias -passin pass:$stsstorepassword -passout pass:$stskeypassword
 
-keytool -importkeystore -destkeystore stsstore.jks -deststorepass stsspass -srckeystore sts.p12 -srcstorepass stskpass -srcstoretype pkcs12
+keytool -importkeystore -destkeystore $stskeystorename.jks -deststorepass $stsstorepassword -srckeystore sts.p12 -srcstorepass $stskeypassword -srcstoretype pkcs12
 
-keytool -list -keystore stsstore.jks -storepass stsspass -v
+keytool -list -keystore $stskeystorename.jks -storepass $stsstorepassword -v
 
-keytool -exportcert -alias mystskey -storepass stsspass -keystore stsstore.jks -file sts.cer 
+keytool -exportcert -alias $stskeyalias -storepass $stsstorepassword -keystore $stskeystorename.jks -file sts.cer 
 
 rm *.pem *.p12
  
 # Import service PK to stskeytore| sts PK to service keystore| sts PK to client keystore| service PK to client keystore
-keytool -exportcert -alias serverkeyalias -keystore servicestore.jks -storepass serverstorepassword -file service.cer
+keytool -exportcert -alias $serverkeyalias -keystore $serverkeystorename.jks -storepass $serverstorepassword -file service.cer
 
-keytool -keystore servicestore.jks -storepass sspass -import -noprompt -trustcacerts -alias mystskey -file sts.cer
+keytool -keystore $serverkeystorename.jks -storepass $serverstorepassword -import -noprompt -trustcacerts -alias $stskeyalias -file sts.cer
 
-keytool -keystore stsstore.jks -storepass stsspass -import -noprompt -trustcacerts -alias myservicekey -file service.cer
+keytool -keystore $stskeystorename.jks -storepass $stsstorepassword -import -noprompt -trustcacerts -alias $serverkeyalias -file service.cer
 
-keytool -keystore clientstore.jks -storepass cspass -import -noprompt -trustcacerts -alias mystskey -file sts.cer
+keytool -keystore $clientkeystorename.jks -storepass $clientstorepassword -import -noprompt -trustcacerts -alias $stskeyalias -file sts.cer
 
-keytool -keystore clientstore.jks -storepass cspass -import -noprompt -trustcacerts -alias myservicekey -file service.cer
+keytool -keystore $clientkeystorename.jks -storepass $clientstorepassword -import -noprompt -trustcacerts -alias $serverkeyalias -file service.cer
  
-# If plannin to user X509 between WSC->STS use below | Import client PK to STS - commented for now
-#keytool -exportcert -alias myclientkey -storepass cspass -keystore clientstore.jks -file client.cer
+# If planning to use X509 between WSC->STS use below - commented for now
 
-#keytool -keystore stsstore.jks -storepass stsspass -import -noprompt -trustcacerts -alias myclientkey -file client.cer
+#keytool -exportcert -alias $clientkeyalias -storepass $clientstorepassword -keystore $clientkeystorename.jks -file client.cer
+
+#keytool -keystore $stskeystorename.jks -storepass $stsstorepassword -import -noprompt -trustcacerts -alias $clientkeyalias -file client.cer
 
 rm *.p12 *.pem *.cer
