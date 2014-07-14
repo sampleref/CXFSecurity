@@ -3,7 +3,7 @@
     xmlns="http://java.sun.com/xml/ns/javaee"
     xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" 
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
-    id="CXF_SecurityIntegration" version="3.0">
+    id="StsService" version="3.0">
     
   <display-name>Archetype Created Web Application</display-name>
   
@@ -50,13 +50,13 @@
 
     <!-- Apache CXF Servlet and mapping -->
 	<servlet>
-		<servlet-name>CXF</servlet-name>
+		<servlet-name>CXFSTS</servlet-name>
 		<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	
 	<servlet-mapping>
-		<servlet-name>CXF</servlet-name>
+		<servlet-name>CXFSTS</servlet-name>
 		<url-pattern>/services/*</url-pattern>
 	</servlet-mapping>
 	

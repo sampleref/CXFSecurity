@@ -22,6 +22,7 @@ public class StsPasswordCallbackHandler implements CallbackHandler{
                 WSPasswordCallback pc = (WSPasswordCallback) callbacks[i];
                 if (pc.getUsage() == WSPasswordCallback.DECRYPT || 
                     pc.getUsage() == WSPasswordCallback.SIGNATURE) {
+                	initializeX509Passwords();
                     final String pass = (String) x509Passwords.get(pc.getIdentifier());
                     if (pass != null) {
                         pc.setPassword(pass);
@@ -38,6 +39,11 @@ public class StsPasswordCallbackHandler implements CallbackHandler{
             }
         }
 		
+	}
+	
+	private void initializeX509Passwords(){
+		x509Passwords = new HashMap<String, String>();
+		x509Passwords.put("stskeyalias", "stskeypassword");
 	}
 	
 	private void initializeUTPasswords(){

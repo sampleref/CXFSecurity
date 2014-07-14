@@ -31,65 +31,82 @@
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
 			<list>
-				<value>classpath*:springconfig/config_param.properties</value>
+				<value>classpath*:springconfig/keystore.properties</value>
 			</list>
 		</property>
 	</bean>
 
-    <bean id="defaultSecurityTokenServiceProviderBean"
-        class="org.apache.cxf.sts.provider.DefaultSecurityTokenServiceProvider">
-        <property name="stsProperties" ref="stsLocalProperties" />
-        <property name="services" ref="staticServicesList" />
+    <bean id="utSTSProviderBean"
+        class="org.apache.cxf.ws.security.sts.provider.SecurityTokenServiceProvider">
+        <property name="issueOperation" ref="utIssueDelegate"/>
+        <property name="validateOperation" ref="utValidateDelegate"/>
+        <property name="cancelOperation" ref="utCancelDelegate"/>
+    </bean>    
+
+    <bean id="utIssueDelegate"
+        class="org.apache.cxf.sts.operation.TokenIssueOperation">
+        <property name="tokenProviders" ref="utSamlTokenProvider"/>
+        <property name="services" ref="utService"/>
+        <property name="stsProperties" ref="utSTSProperties"/>
     </bean>
     
-    <util:list id="staticServicesList">
-	    <ref bean="securedServiceList"/>
-	</util:list>
-
-    <bean id="securedServiceList" class="org.apache.cxf.sts.service.StaticService">
-        <property name="endpoints" ref="wspAllowedEndpoints" />
+    <bean id="utSamlTokenProvider"
+        class="org.apache.cxf.sts.token.provider.SAMLTokenProvider">
+    </bean>
+    
+    <bean id="utValidateDelegate"
+        class="org.apache.cxf.sts.operation.TokenValidateOperation">
+        <property name="tokenValidators" ref="utSamlTokenValidator"/>
+        <property name="stsProperties" ref="utSTSProperties"/>
+    </bean>
+    
+    <bean id="utSamlTokenValidator"
+        class="org.apache.cxf.sts.token.validator.SAMLTokenValidator">
+    </bean>
+    
+    <bean id="utCancelDelegate"
+        class="org.apache.cxf.sts.operation.TokenCancelOperation">
+        <property name="tokenCancellers" ref="utSctCanceller"/>
+        <property name="stsProperties" ref="utSTSProperties"/>
+    </bean>
+    
+    <bean id="utSctCanceller"
+        class="org.apache.cxf.sts.token.canceller.SCTCanceller">
+        <property name="verifyProofOfPossession" value="false"/>
+    </bean>
+    
+    <bean id="utSTSProperties"
+         class="org.apache.cxf.sts.StaticSTSProperties">
+        <property name="signaturePropertiesFile" value="springconfig/keystore.properties"/>
+        <property name="signatureUsername" value="${stskeyalias}"/>
+        <property name="callbackHandlerClass" value="com.security.sts.security.StsPasswordCallbackHandler"/>
+        <property name="issuer" value="cieron"/>
+    </bean>
+    
+    <bean id="utService" class="org.apache.cxf.sts.service.StaticService">
+        <property name="endpoints" ref="utEndpoints"/>
     </bean>
 
-    <util:list id="wspAllowedEndpoints">
+    <util:list id="utEndpoints">
         <value>http://localhost:8080/CheckService/services/SecurityIntegrationService.*</value>
     </util:list>
 
-    <bean id="stsLocalProperties" class="org.apache.cxf.sts.StaticSTSProperties">
-        <property name="signaturePropertiesFile" value="springconfig/config_param.properties" />
-        <property name="signatureUsername" value="${wss.keystoreAlias}" />
-        <property name="callbackHandlerClass" value="sts.PasswordCallbackHandler" />
-        <property name="encryptionPropertiesFile" value="springconfig/config_param.properties" />
-        <property name="issuer" value="CieronSTSIssuer" />
-        <property name="encryptionUsername" value="${wss.serviceKeystoreAlias}"/>
-    </bean>
-    
-    <util:properties id="keystoreProperties">
-		<prop key="org.apache.ws.security.crypto.provider">org.apache.ws.security.components.crypto.Merlin</prop>
-		<prop key="org.apache.ws.security.crypto.merlin.keystore.type">${wss.keystoreType}</prop>
-		<prop key="org.apache.ws.security.crypto.merlin.keystore.password">${wss.keystorePassword}</prop>
-		<prop key="org.apache.ws.security.crypto.merlin.keystore.alias">${wss.keystoreAlias}</prop>
-		<prop key="org.apache.ws.security.crypto.merlin.file">${wss.keystorePath}</prop>
-		<!-- Using STS requires no local trust 
-		<prop key="org.apache.ws.security.crypto.merlin.truststore.file">${wss.keystorePath}</prop>
-		<prop key="org.apache.ws.security.crypto.merlin.truststore.password">${wss.keystorePassword}</prop>
-		<prop key="org.apache.ws.security.crypto.merlin.truststore.type">${wss.keystoreType}</prop>
-		-->
-	</util:properties>
 
-    <jaxws:endpoint id="CXFSTS" implementor="#defaultSecurityTokenServiceProviderBean"
-        address="/STS" wsdlLocation="classpath:META-INF/api/StsService.wsdl"
-        xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/"
+    <jaxws:endpoint id="CheckServiceSTS" implementor="#utSTSProviderBean"
+        address="/STS" wsdlLocation="classpath:META-INF/newapi/ws-trust-1.4-service.wsdl"
+        xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/wsdl"
         serviceName="ns1:SecurityTokenService" endpointName="ns1:STS_Port">
         <jaxws:properties>
-            <entry key="ws-security.callback-handler" value="com.security.sts.security.StsPasswordCallbackHandler" />
-            <entry key="ws-security.signature.properties" value-ref="keystoreProperties" />
-            <entry key="ws-security.signature.username" value="${wss.keystoreAlias}" />
-            <!-- Below unused/unneeded if using UT auth between WSC and STS 
-            <entry key="ws-security.encryption.username" value="useReqSigCert" />-->
-            <!-- Uncomment below only if (1) using UT auth *and* (2) Metro clients -->
-            <!-- Needed due to lack of TokenType param (Metro bugs WSIT-1324 and WSIT-1570) -->
-            <!--entry key="ws-security.is-bsp-compliant" value="false"/-->
+            <entry key="ws-security.callback-handler" value="com.security.sts.security.StsPasswordCallbackHandler"/>
+            <entry key="ws-security.signature.properties" value="springconfig/keystore.properties"/>
+            <entry key="ws-security.signature.username" value="${stskeyalias}"/>
         </jaxws:properties>
+        <jaxws:inInterceptors>
+			<bean class="org.apache.cxf.interceptor.LoggingInInterceptor"/>
+		</jaxws:inInterceptors>
+		<jaxws:outInterceptors> 
+			<bean class="org.apache.cxf.interceptor.LoggingOutInterceptor"/>
+		</jaxws:outInterceptors>
     </jaxws:endpoint>
 
 </beans>
