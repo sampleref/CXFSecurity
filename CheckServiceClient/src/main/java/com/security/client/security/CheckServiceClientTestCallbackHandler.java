@@ -25,6 +25,7 @@ public class CheckServiceClientTestCallbackHandler implements CallbackHandler{
                 WSPasswordCallback pc = (WSPasswordCallback) callbacks[i];
                 if (pc.getUsage() == WSPasswordCallback.DECRYPT || 
                     pc.getUsage() == WSPasswordCallback.SIGNATURE) {
+                	initializeX509Passwords();
                     final String pass = (String) x509Passwords.get(pc.getIdentifier());
                     logger.debug("DECRYPT/SIGNATURE CALLBACK FOR: "+pc.getIdentifier());
                     if (pass != null) {
@@ -48,6 +49,12 @@ public class CheckServiceClientTestCallbackHandler implements CallbackHandler{
 	private void initializeUTPasswords(){
 		utPasswords = new HashMap<String, String>();
 		utPasswords.put("alice", "clarinet");
+		utPasswords.put("user1", "password1");
+	}
+	
+	private void initializeX509Passwords(){
+		x509Passwords = new HashMap<String, String>();
+		x509Passwords.put("clientkeyalias", "clientkeypassword");
 	}
 	
 	/**

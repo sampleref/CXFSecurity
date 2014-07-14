@@ -13,7 +13,7 @@
 		</xs:annotation>
 		<xs:sequence maxOccurs="1" minOccurs="1">
 			<xs:element name="employeeId" type="xs:unsignedInt"/>
-			<xs:element name="otherinfo" type="xs:base64Binary" xmime:expectedContentTypes="*/*"/> 
+<!-- 			<xs:element name="otherinfo" type="xs:base64Binary" xmime:expectedContentTypes="*/*"/>  -->
 		</xs:sequence>
 	</xs:complexType>
 	

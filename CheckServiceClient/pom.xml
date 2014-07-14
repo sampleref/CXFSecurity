@@ -9,7 +9,7 @@
   <url>http://maven.apache.org</url>
   
   <properties>
-  		<cxf.version>2.7.10</cxf.version>
+  		<cxf.version>2.7.11</cxf.version>
   		<camel.version>2.13.0</camel.version>
 		<bouncycastle.version>1.46</bouncycastle.version>
 		<springVersion>3.0.5.RELEASE</springVersion>
@@ -17,6 +17,7 @@
 		<aspectjVersion>1.6.8</aspectjVersion>
 		<aopAllianceVersion>1.0</aopAllianceVersion>
 		<cglibVersion>2.2</cglibVersion>
+		<wss4j.version>1.6.14</wss4j.version>
 		
 		<commonsCollectionsVersion>3.2.1</commonsCollectionsVersion>
 		<commonsLangVersion>2.5</commonsLangVersion>
@@ -26,7 +27,13 @@
   </properties>
   
   <dependencies>
-    <!-- JUnit -->
+  		<!-- WSS4J -->
+			<dependency>
+				<groupId>org.apache.ws.security</groupId>
+				<artifactId>wss4j</artifactId>
+				<version>${wss4j.version}</version>
+			</dependency>
+    	<!-- JUnit -->
 	    <dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -283,6 +290,7 @@
 						</exclusion>
 					</exclusions>
 			</dependency>
+			
 			<!-- CAMEL -->
 			<dependency>
 				<groupId>org.apache.camel</groupId>
