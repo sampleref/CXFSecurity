@@ -37,6 +37,10 @@
 	<logger name="org.apache">
 		<level value="debug" />
 	</logger>
+	
+	<logger name="org.apache.cxf">
+		<level value="debug" />
+	</logger>
 
 	<root>
 		<priority value="debug" />

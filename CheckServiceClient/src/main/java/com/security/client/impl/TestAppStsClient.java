@@ -14,6 +14,6 @@ public class TestAppStsClient {
 		//STSClient stsClient = (STSClient) context.getBean("nosecurity-stsclient");
 		
 		//System.out.println(stsClient.requestSecurityToken().toString());
-		System.out.println(DOM2Writer.nodeToString(stsClient.requestSecurityToken().getToken()));
+		System.out.println(DOM2Writer.nodeToString(stsClient.requestSecurityToken("http://localhost:8080/CheckService/services/SecurityIntegrationService").getToken()));
 	}
 }

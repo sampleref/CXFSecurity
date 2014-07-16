@@ -22,7 +22,6 @@
             	http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 	            
 	<import resource="classpath:META-INF/cxf/cxf.xml"/>
-    <import resource="classpath:META-INF/cxf/cxf-extension-soap.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
     
     <!-- Enable JSR-330 annotation-driven dependency injection. Scanning-->
@@ -34,7 +33,7 @@
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
 			<list>
-				<value>classpath*:springconfig/config_param.properties</value>
+				<value>classpath*:springconfig/keystore.properties</value>
 			</list>
 		</property>
 	</bean>
@@ -42,7 +41,7 @@
 	<bean id="keystorePasswordCallback" class="com.security.service.security.CheckServiceKeystorePasswordCallback">
 		<property name="passwords">
 			<map>
-				<entry key="${wss.keystoreAlias}" value="${wss.keyPassword}"/>
+				<entry key="${serverkeyalias}" value="${serverkeypassword}"/>
 			</map>
 		</property>
 	</bean>

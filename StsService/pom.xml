@@ -9,15 +9,15 @@
   <url>http://maven.apache.org</url>
   
   <properties>
-  		<cxf.version>2.7.6</cxf.version>
+  		<cxf.version>3.0.0</cxf.version>
   		<camel.version>2.13.0</camel.version>
 		<bouncycastle.version>1.46</bouncycastle.version>
-		<springVersion>3.0.7.RELEASE</springVersion>
+		<springVersion>3.2.2.RELEASE</springVersion>
 		<javaxInjectVersion>1</javaxInjectVersion>
 		<aspectjVersion>1.6.8</aspectjVersion>
 		<aopAllianceVersion>1.0</aopAllianceVersion>
 		<cglibVersion>2.2</cglibVersion>
-		<wss4j.version>1.6.15</wss4j.version>
+		<wss4j.version>1.6.14</wss4j.version>
 		
 		<commonsCollectionsVersion>3.2.1</commonsCollectionsVersion>
 		<commonsLangVersion>2.5</commonsLangVersion>
@@ -34,12 +34,12 @@
 			<version>2.0.0</version>
 		</dependency>
 		
-  		<!-- WSS4J -->
+  		<!-- WSS4J 
 			<dependency>
 				<groupId>org.apache.ws.security</groupId>
 				<artifactId>wss4j</artifactId>
 				<version>${wss4j.version}</version>
-			</dependency>
+			</dependency>-->
    		<!-- JUnit -->
 	    <dependency>
 			<groupId>junit</groupId>
@@ -130,6 +130,7 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
+			<!-- 
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-asm</artifactId>
@@ -141,6 +142,7 @@
 					</exclusion>
 				</exclusions>
 			</dependency> 
+			 -->
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-expression</artifactId>
@@ -309,7 +311,7 @@
 					</exclusions>
 			</dependency>
 			-->
-			<!-- CAMEL -->
+			<!-- CAMEL 
 			<dependency>
 				<groupId>org.apache.camel</groupId>
 				<artifactId>camel-cxf</artifactId>
@@ -335,6 +337,7 @@
 				<artifactId>camel-jaxb</artifactId>
 				<version>${camel.version}</version>
 			</dependency>
+			-->
   </dependencies>
   <build>
     <finalName>StsService</finalName>

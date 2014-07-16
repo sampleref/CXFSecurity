@@ -9,10 +9,10 @@
   <url>http://maven.apache.org</url>
   
   <properties>
-  		<cxf.version>2.7.10</cxf.version>
+  		<cxf.version>3.0.0</cxf.version>
   		<camel.version>2.13.0</camel.version>
 		<bouncycastle.version>1.46</bouncycastle.version>
-		<springVersion>3.0.5.RELEASE</springVersion>
+		<springVersion>3.2.2.RELEASE</springVersion>
 		<javaxInjectVersion>1</javaxInjectVersion>
 		<aspectjVersion>1.6.8</aspectjVersion>
 		<aopAllianceVersion>1.0</aopAllianceVersion>
@@ -116,6 +116,7 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
+			<!--  
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-asm</artifactId>
@@ -127,6 +128,7 @@
 					</exclusion>
 				</exclusions>
 			</dependency> 
+			-->
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-expression</artifactId>
@@ -288,6 +290,20 @@
 				<groupId>org.apache.camel</groupId>
 				<artifactId>camel-cxf</artifactId>
 				<version>${camel.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.apache.cxf</groupId>
+						<artifactId>cxf-api</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.apache.cxf</groupId>
+						<artifactId>cxf-api</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.apache.cxf</groupId>
+						<artifactId>cxf-rt-core</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.camel</groupId>

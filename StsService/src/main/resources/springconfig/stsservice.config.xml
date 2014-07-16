@@ -15,6 +15,7 @@
 	http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
     <cxf:bus>
         <cxf:features>
@@ -80,11 +81,15 @@
         <property name="signaturePropertiesFile" value="springconfig/keystore.properties"/>
         <property name="signatureUsername" value="${stskeyalias}"/>
         <property name="callbackHandlerClass" value="com.security.sts.security.StsPasswordCallbackHandler"/>
+        <property name="encryptionUsername" value="${serverkeyalias}" />
+        <property name="encryptionPropertiesFile" value="springconfig/keystore.properties" />
         <property name="issuer" value="cieron"/>
     </bean>
     
     <bean id="utService" class="org.apache.cxf.sts.service.StaticService">
         <property name="endpoints" ref="utEndpoints"/>
+        <property name="tokenType" value="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1"/>
+        <property name="keyType" value="http://docs.oasis-open.org/ws-sx/ws-trust/200512/SymmetricKey"/>
     </bean>
 
     <util:list id="utEndpoints">
