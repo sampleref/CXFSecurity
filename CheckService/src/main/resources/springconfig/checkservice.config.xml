@@ -74,7 +74,7 @@
 		<jaxws:properties>
 			<entry key="ws-security.callback-handler" value-ref="keystorePasswordCallback"/>
 			<entry key="ws-security.signature.properties" value-ref="keystoreProperties"/>
-			<!-- No encrypion so commented below segment 
+			<!-- No encrypion then commented below segment 
 			<entry key="ws-security.encryption.properties" value-ref="keystoreProperties"/>
 			<entry key="ws-security.encryption.username" value="useReqSigCert"/>
 			-->

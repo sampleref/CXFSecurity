@@ -13,6 +13,6 @@ public static void main(String[] args) throws ServiceException {
  
 		CheckServiceTestClient client = (CheckServiceTestClient) context.getBean("checkServiceClient");
 		
-		System.out.println(client.getNameOfEmployeeById(949009509));
+		System.out.println(client.getNameOfEmployeeById(121212232));
 	}
 }
